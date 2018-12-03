@@ -21,6 +21,7 @@
     "test": "xo && node test/cave"
   },
   "devDependencies": {
+    "tape": "^4.9.1",
     "xo": "^0.23.0"
   },
   "xo": {

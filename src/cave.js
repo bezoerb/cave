@@ -1,29 +1,29 @@
 'use strict';
 
-var _ = require('lodash');
-var fs = require('fs');
-var css = require('css');
+const fs = require('fs');
+const _ = require('lodash');
+const css = require('css');
 
-function api (stylesheet, options) {
-  var sheet = css.parse(read(stylesheet));
-  var sheetRules = sheet.stylesheet.rules;
-  var removables = css.parse(options.css);
+function api(stylesheet, options) {
+  const sheet = css.parse(read(stylesheet));
+  const sheetRules = sheet.stylesheet.rules;
+  const removables = css.parse(options.css);
 
   removables.stylesheet.rules.forEach(inspectRule);
   _.forEachRight(sheetRules, removeEmptyMedia);
 
   return result();
 
-  function inspectRule (inspected, parent) {
-    var simpler = omitRulePosition(inspected);
-    var forEachVictim = typeof parent === 'number';
+  function inspectRule(inspected, parent) {
+    const simpler = omitRulePosition(inspected);
+    const forEachVictim = typeof parent === 'number';
     if (forEachVictim) {
       parent = false;
     }
     if (inspected.type === 'rule') {
       if (parent) {
         _.chain(sheetRules)
-          .filter({ type: 'media', media: parent.media })
+          .filter({type: 'media', media: parent.media})
           .map('rules')
           .value()
           .forEach(removeMatches);
@@ -34,68 +34,68 @@ function api (stylesheet, options) {
       inspected.rules.forEach(inspectRuleInMedia);
     }
 
-    function inspectRuleInMedia (rule) {
+    function inspectRuleInMedia(rule) {
       inspectRule(rule, inspected);
     }
 
-    function removeMatches (rules) {
-      _.remove(rules, perfectMatch).length; // remove perfect matches
-      _.filter(rules, byDeclarations).forEach(stripSelector); // strip selector from partial matches
+    function removeMatches(rules) {
+      _.remove(rules, perfectMatch); // Remove perfect matches
+      _.filter(rules, byDeclarations).forEach(stripSelector); // Strip selector from partial matches
       _.filter(rules, bySelector).forEach(stripDeclarations); // Strip declarations from partial matches
       _.remove(rules, noDeclarations);
     }
 
-    function perfectMatch (rule) {
+    function perfectMatch(rule) {
       return _.isEqual(omitRulePosition(rule), simpler);
     }
 
-    function noDeclarations (rule) {
-        return rule.type === 'rule' && _.filter(rule.declarations, {type: 'declaration'}).length === 0;
+    function noDeclarations(rule) {
+      return rule.type === 'rule' && _.filter(rule.declarations, {type: 'declaration'}).length === 0;
     }
 
-    function byDeclarations (rule) {
+    function byDeclarations(rule) {
       return _.isEqual(omitRulePosition(rule).declarations, simpler.declarations);
     }
 
-    function bySelector (rule) {
+    function bySelector(rule) {
       return _.isEqual(omitRulePosition(rule).selectors, simpler.selectors);
     }
 
-    function stripSelector (rule) {
+    function stripSelector(rule) {
       rule.selectors = _.difference(rule.selectors, inspected.selectors);
     }
 
-    function stripDeclarations (rule) {
+    function stripDeclarations(rule) {
       rule.declarations = _.differenceWith(omitRulePosition(rule).declarations, simpler.declarations, _.isEqual);
     }
   }
 
-  function removeEmptyMedia (rule, i) {
+  function removeEmptyMedia(rule, i) {
     if (rule.type === 'media' && rule.rules.length === 0) {
       sheetRules.splice(i, 1);
     }
   }
 
-  function result () {
+  function result() {
     return css.stringify(sheet) + '\n';
   }
 }
 
-function omitPosition (declaration) {
+function omitPosition(declaration) {
   return _.omit(declaration, 'position');
 }
 
-function omitRulePosition (rule) {
+function omitRulePosition(rule) {
   if (rule.type !== 'rule') {
     return false;
   }
-  var result = omitPosition(rule);
+  const result = omitPosition(rule);
   result.declarations = result.declarations.map(omitPosition);
   return result;
 }
 
-function read (file) {
-  return fs.readFileSync(file, { encoding: 'utf8' });
+function read(file) {
+  return fs.readFileSync(file, {encoding: 'utf8'});
 }
 
 module.exports = api;
