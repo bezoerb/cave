@@ -5,7 +5,12 @@ const _ = require('lodash');
 const css = require('css');
 
 function api(stylesheet, options) {
-  const sheet = css.parse(read(stylesheet));
+  let sheet;
+  if (fs.existsSync(stylesheet)) {
+    sheet = css.parse(read(stylesheet));
+  } else {
+    sheet = css.parse(stylesheet);
+  }
   const sheetRules = sheet.stylesheet.rules;
   const removables = css.parse(options.css);
 
