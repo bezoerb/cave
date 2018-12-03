@@ -11,15 +11,15 @@ var ok;
 if (argv.css) {
   go(read(argv.css));
 } else {
-  stdin(go);
+  stdin.then(go);
   setTimeout(die, 100);
 }
 
-function read (file) {
-  return fs.readFileSync(file, { encoding: 'utf8' });
+function read(file) {
+  return fs.readFileSync(file, {encoding: 'utf8'});
 }
 
-function go (data) {
+function go(data) {
   ok = true;
   argv.css = data;
   var diff = cave(argv._[0], argv);
@@ -27,15 +27,10 @@ function go (data) {
   process.exit();
 }
 
-function die () {
+function die() {
   if (ok) {
     return;
   }
-  console.log([
-    'usage:',
-    '  cave <total> --css <to-remove>',
-    'result:',
-    '  <diff>'
-  ].join('\n'));
+  console.log(['usage:', '  cave <total> --css <to-remove>', 'result:', '  <diff>'].join('\n'));
   process.exit();
 }
